@@ -7,7 +7,7 @@ import routes.models.Inventory
 interface InventoryService : KoinComponent{
 
     fun save(inventory: Inventory): Inventory
-    fun getInventory():Inventory
+    fun getInventory(): Iterable<Inventory>
 }
 
 class InventoryServiceImpl(
@@ -17,31 +17,16 @@ class InventoryServiceImpl(
     override fun save(inventory: Inventory): Inventory {
 
         try{
-            checkInputNumber(inventory.pencil)
+            checkInputNumber(inventory.count)
         }
         catch (ex: Exception){
-            inventory.pencil = 0
-            println(ex.message)
-        }
-        try{
-            checkInputNumber(inventory.pen)
-        }
-        catch (ex: Exception){
-            inventory.pen = 0
-            println(ex.message)
-        }
-        try{
-            checkInputNumber(inventory.book)
-        }
-        catch (ex: Exception){
-            inventory.book = 0
+            inventory.count = 0
             println(ex.message)
         }
         return inventoryRepository.save(inventory)
-
     }
 
-    override fun getInventory(): Inventory {
+    override fun getInventory(): Iterable<Inventory> {
         return inventoryRepository.getInventory()
     }
 
@@ -49,6 +34,4 @@ class InventoryServiceImpl(
         if(input<0)
             throw Exception("Input is not valid...Enter a valid number")
     }
-
-
 }

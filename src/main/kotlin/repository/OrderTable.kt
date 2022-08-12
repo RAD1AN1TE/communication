@@ -9,44 +9,58 @@ import routes.models.Order
 object OrderTable: Table("orders"){
 
     val orderId = integer("orderId").autoIncrement()
-    val pencil = integer("pencils")
-    val pen = integer("pens")
-    val book = integer("books")
-
+    val item = varchar("items", 20)
+    val count = integer("count")
+    val success = bool("success")
 }
 
 interface OrderRepository: KoinComponent{
 
-    fun createOrder(inventory: Inventory):Int
-    fun getOrder(order: Order): Order
-    fun editOrder(order: Order):Order
+    fun createOrder(inventory: Inventory, paymentStatus: Boolean)
+    fun getOrderById(orderId: Int): Order?
+    fun editOrder(order: Order): Order?
 
+    fun checkOrder(orderId: Int):Boolean
 }
 
 class OrderRepositoryImpl(private val db: Database) : OrderRepository {
 
     private fun toOrder(row: ResultRow) = Order(
         orderId = row[OrderTable.orderId],
-        pencil = row[OrderTable.pencil],
-        pen = row[OrderTable.pen],
-        book = row[OrderTable.book]
+        item = row[OrderTable.item],
+        count = row[OrderTable.count],
+        success = row[OrderTable.success]
     )
-    override fun createOrder(inventory: Inventory):Int =  transaction(db) {
-        OrderTable.insert {
-            it[pencil] =  inventory.pencil
-            it[pen] =  inventory.pen
-            it[book] =  inventory.book
-        }
-         val actual = InventoryTable.selectAll().map(::toOrder)
-        actual.last().orderId
-     }
+    override fun createOrder(order: Inventory, paymentStatus: Boolean) {
 
-    override fun getOrder(order: Order): Order {
-        TODO("Not yet implemented")
+        transaction(db) {
+            OrderTable.insert {
+                it[item] = order.item
+                it[count] = order.count
+                it[success] = paymentStatus
+            }
+//        val actual = OrderTable.selectAll().map(::toOrder)
+//        actual.last().orderId
+        }
     }
 
-    override fun editOrder(order: Order): Order {
-        TODO("Not yet implemented")
+    override fun getOrderById(orderId: Int): Order? = transaction(db) {
+        val result = OrderTable.select{OrderTable.orderId eq orderId}.map(::toOrder)
+        result.first()
+    }
+
+    override fun editOrder(order: Order): Order? = transaction(db){
+        OrderTable.update({OrderTable.orderId eq order.orderId!!}){
+            it[item] = order.item
+            it[count]  = order.count
+        }
+        order
+    }
+
+    override fun checkOrder(orderId: Int): Boolean = transaction(db){
+        val result = OrderTable.select { OrderTable.orderId eq orderId }.map(::toOrder)
+        val notExist = result.isEmpty()
+        notExist
     }
 
 

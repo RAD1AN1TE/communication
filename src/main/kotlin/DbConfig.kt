@@ -7,6 +7,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import repository.InventoryTable
+import repository.OrderTable
 import javax.sql.DataSource
 
 
@@ -42,7 +43,8 @@ fun Application.initDB(){
     val database = DbConnection.dataBase
 
     transaction(database) {
-        SchemaUtils.create(InventoryTable)
+        SchemaUtils.create(InventoryTable, OrderTable)
+        SchemaUtils.create(NewOrderTable, ItemTable)
     }
 
 }

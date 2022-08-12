@@ -6,17 +6,19 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import org.koin.ktor.ext.inject
+import repository.InventoryRepository
 import routes.models.Inventory
 import services.InventoryService
 
 fun Application.inventoryRoutes() {
 
     val service: InventoryService by inject()
+    val repository: InventoryRepository by inject()
 
     routing {
         route("/v1") {
             get("/items"){
-                val allItems = service.getInventory()
+                val allItems = repository.getInventory()
                 call.respond(allItems)
             }
             post("/save") {

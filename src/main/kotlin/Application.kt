@@ -1,5 +1,6 @@
 
 
+import exceptions.addExceptions
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.jackson.*
@@ -27,6 +28,10 @@ fun Application.module() {
 
     install(ContentNegotiation){
         jackson {  }
+    }
+
+    install(StatusPages) {
+        addExceptions()
     }
 
     inventoryRoutes()

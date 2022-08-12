@@ -1,6 +1,9 @@
 package repository
 
+import com.sun.org.apache.xpath.internal.operations.Bool
+import kotlinx.coroutines.selects.select
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.koin.core.component.KoinComponent
 import routes.models.Inventory
@@ -8,45 +11,67 @@ import routes.models.Inventory
 
 object InventoryTable : Table("inventory") {
 
-    val pencil = integer("pencils")
-    val pen = integer("pens")
-    val book = integer("books")
+    val item = varchar("items", 50)
+    val count = integer("count")
 
 }
 
 interface InventoryRepository : KoinComponent {
 
-    fun save(inventory: Inventory): Inventory
-    fun getInventory():Inventory
+    fun save(inventory: Inventory):Inventory
+
+    fun updateInventory(inventory: Inventory): Inventory
+    fun getInventory():Iterable<Inventory>
 }
 
 class InventoryRepositoryImpl(private val db: Database) : InventoryRepository {
 
+
     private fun toInventory(row: ResultRow) = Inventory(
-        pencil = row[InventoryTable.pencil],
-        pen = row[InventoryTable.pen],
-        book = row[InventoryTable.book]
+        item = row[InventoryTable.item],
+        count = row[InventoryTable.count]
     )
 
-    override fun save(inventory: Inventory): Inventory = transaction(db) {
-            val result = InventoryTable.selectAll().map(::toInventory)
-            if(result.isNotEmpty())
-            {
-                inventory.pencil += result.last().pencil
-                inventory.pen += result.last().pen
-                inventory.book += result.last().book
-            }
-            InventoryTable.insert {
-                it[pencil] =  inventory.pencil
-                it[pen] =  inventory.pen
-                it[book] =  inventory.book
-            }
+    override fun save(inventory: Inventory): Inventory = transaction(db){
+
+        val result = InventoryTable.select { InventoryTable.item eq inventory.item }.map(::toInventory)
+        val notExist = result.isEmpty()
+        println(notExist)
+        if(notExist){
+            insertItem(inventory)
+        }
+        else{
+            inventory.count += result.first().count
+            updateItem(inventory)
+        }
+
         inventory
     }
 
-    override fun getInventory(): Inventory = transaction(db) {
-            val result = InventoryTable.selectAll().map(::toInventory)
-            result.last()
+
+    override fun updateInventory(inventory: Inventory): Inventory = transaction (db){
+        val result = InventoryTable.select{InventoryTable.item eq inventory.item}.map(::toInventory)
+        inventory.count = result.first().count - inventory.count
+        updateItem(inventory)
+        inventory
+    }
+
+
+    override fun getInventory(): Iterable<Inventory> = transaction(db) {
+        val result = InventoryTable.selectAll().map(::toInventory)
+        result
+    }
+    private fun insertItem(inventory: Inventory){
+        InventoryTable.insert{
+            it[item] = inventory.item
+            it[count] = inventory.count
+        }
+    }
+    private fun updateItem(inventory: Inventory){
+        InventoryTable.update({InventoryTable.item eq inventory.item}){
+            it[item] = inventory.item
+            it[count] = inventory.count
+        }
     }
 
 }

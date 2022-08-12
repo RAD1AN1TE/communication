@@ -27,7 +27,7 @@ dependencies {
     implementation ("ch.qos.logback:logback-classic:1.2.11")
 
     implementation("io.ktor:ktor-client-core:1.6.8")
-    implementation("io.ktor:ktor-client-core:1.6.8")
+    implementation("io.ktor:ktor-client-cio:1.6.8")
     implementation("io.ktor:ktor-client-serialization:1.6.8")
     implementation("io.ktor:ktor-client-logging:1.6.8")
 
@@ -64,6 +64,17 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.2")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.4.2")
     testImplementation("org.mockito:mockito-junit-jupiter:4.6.1")
+
+    //OpenFeign dependencies (testing purpose)
+    implementation("io.github.openfeign:feign-core: 10.3.0")
+    implementation("io.github.openfeign:feign-httpclient:10.3.0")
+    implementation("io.github.openfeign:feign-slf4j:10.3.0")
+    implementation("io.github.openfeign:feign-jackson:10.3.0")
+
+
+
+
+
 }
 
 jacoco {

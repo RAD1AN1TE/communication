@@ -1,9 +1,8 @@
 package routes.models
 
 data class Inventory (
-    var pen:Int,
-    var pencil:Int,
-    var book:Int,
+    var item: String,
+    var count: Int,
 )
 
 
